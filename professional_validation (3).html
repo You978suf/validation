@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام التحقق من لغة الإشارة - احترافي</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Cairo', 'Segoe UI', sans-serif;
+            background: #F8FAFC;
+            direction: rtl;
+            line-height: 1.6;
+            color: #1E293B;
+        }
+        
+        /* Login Screen */
+        .login-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+            display: flex; align-items: center; justify-content: center; z-index: 9999;
+        }
+        
+        .login-box {
+            background: white; padding: 50px; border-radius: 24px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3); max-width: 480px; width: 90%;
+        }
+        
+        .login-logo {
+            width: 80px; height: 80px; margin: 0 auto 20px;
+            background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+            border-radius: 20px; display: flex; align-items: center; justify-content: center;
+            font-size: 3em; box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+        }
+        
+        .login-title { font-size: 1.8em; color: #0F172A; margin-bottom: 8px;
+            font-weight: 700; text-align: center; }
+        .login-subtitle { color: #64748B; font-size: 1em; text-align: center; margin-bottom: 30px; }
+        
+        .role-tabs {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 30px;
+            background: #F1F5F9; padding: 6px; border-radius: 12px;
+        }
+        
+        .role-tab {
+            padding: 14px; border: none; background: transparent; border-radius: 8px;
+            cursor: pointer; font-size: 1.05em; font-weight: 600; color: #64748B;
+            transition: all 0.3s; font-family: inherit;
+        }
+        
+        .role-tab.active { background: white; color: #3B82F6; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        
+        .input-group { margin-bottom: 20px; }
+        .input-label { display: block; margin-bottom: 8px; color: #334155;
+            font-weight: 600; font-size: 0.95em; }
+        .input-required { color: #EF4444; }
+        
+        .form-input {
+            width: 100%; padding: 14px 16px; border: 2px solid #E2E8F0;
+            border-radius: 12px; font-size: 1em; transition: all 0.3s;
+            font-family: inherit; background: #F8FAFC;
+        }
+        
+        .form-input:focus {
+            outline: none; border-color: #3B82F6; background: white;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        }
+        
+        .form-input.error { border-color: #EF4444; background: #FEF2F2; }
+        .input-hint { font-size: 0.85em; color: #64748B; margin-top: 6px; }
+        .input-error { font-size: 0.85em; color: #EF4444; margin-top: 6px; display: none; }
+        .input-error.show { display: block; }
+        
+        .btn-login {
+            width: 100%; padding: 16px; background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+            color: white; border: none; border-radius: 12px; font-size: 1.15em;
+            font-weight: 700; cursor: pointer; transition: all 0.3s; font-family: inherit;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        
+        .btn-login:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4); }
+        
+        /* Navigation */
+        nav { background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.08); position: sticky; top: 0; z-index: 100; }
+        
+        .nav-container {
+            max-width: 1400px; margin: 0 auto; padding: 0 30px;
+            display: flex; justify-content: space-between; align-items: center; height: 80px;
+        }
+        
+        .nav-brand { display: flex; align-items: center; gap: 16px; }
+        .brand-icon {
+            width: 48px; height: 48px; background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+            border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5em;
+        }
+        .brand-text { font-size: 1.4em; font-weight: 700; color: #0F172A; }
+        
+        .nav-menu { display: flex; gap: 8px; }
+        .nav-link {
+            padding: 12px 24px; color: #64748B; text-decoration: none;
+            border-radius: 10px; transition: all 0.3s; font-weight: 600; font-size: 1.05em;
+        }
+        .nav-link:hover { background: #F1F5F9; color: #3B82F6; }
+        .nav-link.active { background: #EFF6FF; color: #3B82F6; }
+        
+        .user-section { display: flex; align-items: center; gap: 16px; }
+        .user-badge {
+            display: flex; align-items: center; gap: 12px;
+            padding: 8px 16px; background: #F1F5F9; border-radius: 12px;
+        }
+        
+        .user-avatar {
+            width: 40px; height: 40px; background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+            border-radius: 10px; display: flex; align-items: center; justify-content: center;
+            color: white; font-weight: 700; font-size: 1.1em;
+        }
+        
+        .user-name { font-weight: 600; color: #0F172A; font-size: 0.95em; }
+        .user-role { font-size: 0.8em; color: #64748B; }
+        
+        .btn-logout {
+            padding: 10px 20px; background: #FEE2E2; color: #DC2626;
+            border: none; border-radius: 10px; cursor: pointer; font-weight: 600;
+            transition: all 0.3s; font-family: inherit;
+        }
+        .btn-logout:hover { background: #FEF2F2; }
+        
+        /* Main Content */
+        .container { max-width: 1400px; margin: 40px auto; padding: 0 30px; }
+        .page-header { margin-bottom: 32px; }
+        .page-title { font-size: 2.2em; color: #0F172A; margin-bottom: 8px; font-weight: 700; }
+        .page-description { color: #64748B; font-size: 1.1em; }
+        
+        .card {
+            background: white; border-radius: 20px; padding: 32px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08); margin-bottom: 24px;
+        }
+        
+        .card-header { margin-bottom: 28px; padding-bottom: 20px; border-bottom: 2px solid #F1F5F9; }
+        .card-title { font-size: 1.5em; color: #0F172A; font-weight: 700; }
+        
+        /* Upload Zone */
+        .upload-zone {
+            border: 3px dashed #CBD5E1; border-radius: 16px; padding: 60px;
+            text-align: center; cursor: pointer; transition: all 0.3s; background: #F8FAFC;
+        }
+        .upload-zone:hover { border-color: #3B82F6; background: #EFF6FF; }
+        .upload-icon { font-size: 4em; margin-bottom: 16px; opacity: 0.6; }
+        .upload-text { color: #64748B; font-size: 1.1em; margin-bottom: 8px; }
+        
+        .preview-img {
+            max-width: 100%; max-height: 500px; margin: 24px auto;
+            display: block; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        }
+        
+        /* Submissions Grid */
+        .submissions-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: 28px;
+        }
+        
+        .submission-card {
+            background: white; border: 2px solid #F1F5F9; border-radius: 20px;
+            overflow: hidden; transition: all 0.3s;
+        }
+        .submission-card:hover {
+            box-shadow: 0 12px 32px rgba(0,0,0,0.12);
+            transform: translateY(-4px); border-color: #E2E8F0;
+        }
+        
+        .submission-image { width: 100%; height: 280px; object-fit: cover; background: #F8FAFC; }
+        .submission-body { padding: 28px; }
+        
+        .submission-top {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
+        }
+        
+        .submission-letter {
+            font-size: 3em; font-weight: 700;
+            background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        
+        .status-badge {
+            padding: 8px 18px; border-radius: 24px; font-size: 0.85em;
+            font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .status-pending { background: #FEF3C7; color: #92400E; }
+        .status-approved { background: #D1FAE5; color: #065F46; }
+        .status-rejected { background: #FEE2E2; color: #991B1B; }
+        
+        .info-list { margin-bottom: 24px; }
+        .info-item {
+            display: flex; justify-content: space-between; padding: 12px 16px;
+            background: #F8FAFC; border-radius: 10px; margin-bottom: 8px;
+        }
+        .info-label { color: #64748B; font-weight: 600; font-size: 0.95em; }
+        .info-value { color: #0F172A; font-weight: 600; }
+        
+        /* Rating System */
+        .rating-container {
+            background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%);
+            border: 2px solid #FCD34D; border-radius: 16px; padding: 28px; margin: 24px 0;
+        }
+        
+        .rating-title {
+            text-align: center; font-size: 1.3em; font-weight: 700;
+            color: #78350F; margin-bottom: 20px;
+        }
+        
+        .rating-stars {
+            display: flex; gap: 16px; justify-content: center; margin: 24px 0;
+        }
+        
+        .star-btn {
+            text-align: center; cursor: pointer; transition: all 0.2s;
+        }
+        
+        .star-icon {
+            font-size: 3em; color: #D1D5DB; display: block;
+            transition: all 0.2s; filter: grayscale(100%);
+        }
+        
+        .star-btn:hover .star-icon,
+        .star-btn.active .star-icon {
+            color: #FBBF24; filter: grayscale(0%); transform: scale(1.15);
+        }
+        
+        .star-number {
+            font-size: 1.2em; font-weight: 700; color: #78350F; margin-top: 8px;
+        }
+        
+        .star-label {
+            font-size: 0.9em; color: #92400E; margin-top: 4px;
+        }
+        
+        .rating-guide {
+            background: white; padding: 20px; border-radius: 12px; margin-top: 20px;
+        }
+        
+        .rating-guide-title {
+            font-weight: 700; color: #78350F; margin-bottom: 12px;
+        }
+        
+        .rating-guide-list {
+            list-style: none;
+        }
+        
+        .rating-guide-list li {
+            padding: 6px 0; color: #92400E; font-size: 0.95em;
+        }
+        
+        .rating-guide-list li strong { color: #78350F; }
+        
+        
+        /* Feedback Section */
+        .feedback-section {
+            background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%);
+            border: 2px solid #86EFAC; border-radius: 16px; padding: 24px; margin: 24px 0;
+        }
+        
+        .feedback-title { font-size: 1.2em; font-weight: 700; color: #065F46; margin-bottom: 16px; }
+        
+        .feedback-options { display: grid; gap: 12px; margin-bottom: 16px; }
+        
+        .feedback-option {
+            display: flex; align-items: center; gap: 12px; padding: 14px 16px;
+            background: white; border-radius: 10px; cursor: pointer;
+            transition: all 0.3s; border: 2px solid transparent;
+        }
+        
+        .feedback-option:hover { border-color: #34D399; background: #F0FDF4; }
+        
+        .feedback-checkbox { width: 22px; height: 22px; cursor: pointer; accent-color: #10B981; }
+        .feedback-text { font-weight: 600; color: #065F46; }
+        
+        .feedback-textarea {
+            width: 100%; padding: 14px; border: 2px solid #86EFAC;
+            border-radius: 10px; font-family: inherit; font-size: 1em;
+            resize: vertical; min-height: 100px;
+        }
+        
+        .feedback-textarea:focus {
+            outline: none; border-color: #10B981;
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+        }
+        
+        /* Already Rated */
+        .already-rated {
+            background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);
+            border: 2px solid #93C5FD; text-align: center; padding: 32px;
+            border-radius: 16px; margin: 24px 0;
+        }
+        
+        .already-rated-icon { font-size: 3em; margin-bottom: 12px; }
+        .already-rated-text { color: #1E40AF; font-weight: 600; font-size: 1.1em; }
+        .already-rated-rating { font-size: 2em; font-weight: 700; color: #2563EB; margin-top: 8px; }
+        
+        /* Expert Reviews (Admin) */
+        .expert-reviews { margin-top: 24px; }
+        .expert-reviews-title {
+            font-weight: 700; color: #0F172A; margin-bottom: 16px; font-size: 1.15em;
+        }
+        
+        .expert-review-item {
+            background: #F8FAFC; border: 2px solid #E2E8F0;
+            border-radius: 12px; padding: 20px; margin-bottom: 12px;
+        }
+        
+        .expert-review-header {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
+        }
+        
+        .expert-info { display: flex; align-items: center; gap: 12px; }
+        
+        .expert-avatar-small {
+            width: 36px; height: 36px; background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+            border-radius: 8px; display: flex; align-items: center; justify-content: center;
+            color: white; font-weight: 700;
+        }
+        
+        .expert-name { font-weight: 700; color: #0F172A; }
+        .expert-phone { font-size: 0.9em; color: #64748B; }
+        .expert-rating { font-size: 1.5em; font-weight: 700; color: #D97706; }
+        
+        .expert-feedback {
+            color: #475569; line-height: 1.6; background: white;
+            padding: 12px; border-radius: 8px;
+        }
+        
+        /* Stats */
+        .stats-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 24px; margin-bottom: 32px;
+        }
+        
+        .stat-card {
+            background: white; padding: 28px; border-radius: 16px;
+            text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            border: 2px solid #F1F5F9;
+        }
+        
+        .stat-icon { font-size: 2.5em; margin-bottom: 12px; }
+        .stat-number {
+            font-size: 3.5em; font-weight: 700;
+            background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+        .stat-label { color: #64748B; font-size: 1.05em; font-weight: 600; }
+        
+        /* Buttons */
+        .btn {
+            padding: 14px 24px; border: none; border-radius: 12px;
+            font-size: 1.05em; font-weight: 700; cursor: pointer;
+            transition: all 0.3s; font-family: inherit;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+            color: white; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4); }
+        .btn-block { width: 100%; }
+        
+        .action-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 24px; }
+        
+        .btn-approve {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            color: white; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+        .btn-approve:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4); }
+        
+        .btn-reject {
+            background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+            color: white; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+        .btn-reject:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4); }
+        
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+        
+        /* Empty State */
+        .empty-state { text-align: center; padding: 80px 40px; color: #94A3B8; }
+        .empty-icon { font-size: 5em; margin-bottom: 20px; opacity: 0.6; }
+        .empty-title { font-size: 1.5em; color: #64748B; margin-bottom: 12px; font-weight: 600; }
+        .empty-text { font-size: 1.05em; }
+        
+        @media (max-width: 768px) {
+            .submissions-grid { grid-template-columns: 1fr; }
+            .nav-menu { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div class="login-overlay" id="loginScreen">
+        <div class="login-box">
+            <div class="login-logo">🤟</div>
+            <h1 class="login-title">نظام التحقق من لغة الإشارة</h1>
+            <p class="login-subtitle">تسجيل دخول آمن</p>
+
+            <div class="role-tabs">
+                <button class="role-tab active" onclick="selectRole('expert')">👨‍🏫 خبير</button>
+                <button class="role-tab" onclick="selectRole('admin')">👨‍💼 إدارة</button>
+            </div>
+
+            <form onsubmit="login(event)">
+                <div class="input-group">
+                    <label class="input-label"><span class="input-required">*</span> الاسم الكامل:</label>
+                    <input type="text" id="loginName" class="form-input" placeholder="مثال: أحمد محمد الهنائي" required>
+                    <span class="input-hint">الاسم الثلاثي</span>
+                    <span class="input-error" id="nameError">يرجى إدخال الاسم الثلاثي (3 كلمات على الأقل)</span>
+                </div>
+
+                <div class="input-group" id="phoneGroup">
+                    <label class="input-label"><span class="input-required">*</span> رقم الهاتف:</label>
+                    <input type="tel" id="loginPhone" class="form-input" placeholder="9XXXXXXX أو 7XXXXXXX" required>
+                    <span class="input-hint">8 أرقام تبدأ بـ 9 أو 7</span>
+                    <span class="input-error" id="phoneError">رقم غير صحيح (يجب أن يكون 8 أرقام تبدأ بـ 9 أو 7)</span>
+                </div>
+
+                <div class="input-group" id="passwordGroup" style="display: none;">
+                    <label class="input-label"><span class="input-required">*</span> كلمة المرور:</label>
+                    <input type="password" id="loginPassword" class="form-input" placeholder="كلمة المرور...">
+                </div>
+
+                <button type="submit" class="btn-login">دخول</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="mainApp" style="display: none;">
+        <nav>
+            <div class="nav-container">
+                <div class="nav-brand">
+                    <div class="brand-icon">🤟</div>
+                    <div class="brand-text">نظام التحقق</div>
+                </div>
+
+                <div class="nav-menu">
+                    <a href="#" class="nav-link" id="uploadLink" style="display: none;" onclick="showPage('upload', event)">📤 رفع إشارة</a>
+                    <a href="#" class="nav-link active" onclick="showPage('review', event)">⭐ تقييم</a>
+                    <a href="#" class="nav-link" id="adminLink" style="display: none;" onclick="showPage('admin', event)">👨‍💼 الإدارة</a>
+                </div>
+
+                <div class="user-section">
+                    <div class="user-badge">
+                        <div class="user-avatar" id="userAvatar"></div>
+                        <div>
+                            <div class="user-name" id="userName"></div>
+                            <div class="user-role" id="userRole"></div>
+                        </div>
+                    </div>
+                    <button class="btn-logout" onclick="logout()">خروج</button>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container">
+            <!-- Upload Page -->
+            <div id="uploadPage" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">📤 رفع إشارة جديدة</h1>
+                    <p class="page-description">أضف إشارة جديدة للمراجعة</p>
+                </div>
+
+                <div class="card">
+                    <div class="card-header"><h2 class="card-title">معلومات الإشارة</h2></div>
+                    <form id="uploadForm" onsubmit="submitSign(event)">
+                        <div class="input-group">
+                            <label class="input-label"><span class="input-required">*</span> الحرف/الكلمة:</label>
+                            <input type="text" id="signText" class="form-input" placeholder="مثال: ا، سلام" required>
+                        </div>
+
+                        <div class="input-group">
+                            <label class="input-label"><span class="input-required">*</span> النوع:</label>
+                            <select id="signType" class="form-input">
+                                <option value="letter">حرف</option>
+                                <option value="word">كلمة</option>
+                                <option value="phrase">جملة</option>
+                            </select>
+                        </div>
+
+                        <div class="input-group">
+                            <label class="input-label">الوصف:</label>
+                            <textarea id="signDescription" class="form-input" placeholder="وصف تفصيلي..." style="min-height: 100px;"></textarea>
+                        </div>
+
+                        <div class="input-group">
+                            <label class="input-label"><span class="input-required">*</span> الصورة:</label>
+                            <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
+                                <div class="upload-icon">📸</div>
+                                <div class="upload-text">اضغط لاختيار الصورة</div>
+                            </div>
+                            <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="handleFile(event)">
+                            <img id="preview" class="preview-img" style="display: none;">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-block">✅ إرسال</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Review Page -->
+            <div id="reviewPage" class="page" style="display: none;">
+                <div class="page-header">
+                    <h1 class="page-title">⭐ تقييم الإشارات</h1>
+                    <p class="page-description">قيّم الإشارات المقدمة</p>
+                </div>
+                <div class="submissions-grid" id="reviewGrid"></div>
+            </div>
+
+            <!-- Admin Page -->
+            <div id="adminPage" class="page" style="display: none;">
+                <div class="page-header">
+                    <h1 class="page-title">👨‍💼 لوحة الإدارة</h1>
+                    <p class="page-description">إدارة جميع الإشارات</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">📊</div>
+                        <div class="stat-number" id="totalStat">0</div>
+                        <div class="stat-label">إجمالي</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⏳</div>
+                        <div class="stat-number" id="pendingStat">0</div>
+                        <div class="stat-label">قيد المراجعة</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-number" id="approvedStat">0</div>
+                        <div class="stat-label">مقبولة</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">❌</div>
+                        <div class="stat-number" id="rejectedStat">0</div>
+                        <div class="stat-label">مرفوضة</div>
+                    </div>
+                </div>
+
+                <div class="submissions-grid" id="adminGrid"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const ADMIN_PASSWORD = 'admin123';
+        let currentUser = null;
+        let submissions = [];
+        let userRatings = {};
+
+        const STAR_LABELS = { 1: 'ضعيف جداً', 2: 'ضعيف', 3: 'مقبول', 4: 'جيد', 5: 'ممتاز' };
+
+        function loadData() {
+            try {
+                submissions = JSON.parse(localStorage.getItem('submissions') || '[]');
+                userRatings = JSON.parse(localStorage.getItem('userRatings') || '{}');
+            } catch (e) {
+                submissions = [];
+                userRatings = {};
+            }
+        }
+
+        loadData();
+
+        function selectRole(role) {
+            document.querySelectorAll('.role-tab').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            const phoneGroup = document.getElementById('phoneGroup');
+            const passwordGroup = document.getElementById('passwordGroup');
+            const phoneInput = document.getElementById('loginPhone');
+            const passwordInput = document.getElementById('loginPassword');
+            
+            if (role === 'admin') {
+                phoneGroup.style.display = 'none';
+                passwordGroup.style.display = 'block';
+                phoneInput.removeAttribute('required');
+                passwordInput.setAttribute('required', 'required');
+            } else {
+                phoneGroup.style.display = 'block';
+                passwordGroup.style.display = 'none';
+                phoneInput.setAttribute('required', 'required');
+                passwordInput.removeAttribute('required');
+            }
+        }
+
+        function validatePhone(phone) {
+            return /^[97]\d{7}$/.test(phone);
+        }
+
+        function validateName(name) {
+            return name.trim().split(/\s+/).length >= 3;
+        }
+
+        function login(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('loginName').value.trim();
+            const phone = document.getElementById('loginPhone').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            const role = document.querySelector('.role-tab.active').textContent.includes('إدارة') ? 'admin' : 'expert';
+            
+            document.querySelectorAll('.form-input').forEach(i => i.classList.remove('error'));
+            document.querySelectorAll('.input-error').forEach(e => e.classList.remove('show'));
+            
+            if (!validateName(name)) {
+                document.getElementById('loginName').classList.add('error');
+                document.getElementById('nameError').classList.add('show');
+                return;
+            }
+            
+            if (role === 'expert' && !validatePhone(phone)) {
+                document.getElementById('loginPhone').classList.add('error');
+                document.getElementById('phoneError').classList.add('show');
+                return;
+            }
+            
+            if (role === 'admin' && password !== ADMIN_PASSWORD) {
+                alert('❌ كلمة مرور خاطئة');
+                return;
+            }
+            
+            currentUser = { name, phone: role === 'expert' ? phone : 'N/A', role };
+            
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('mainApp').style.display = 'block';
+            document.getElementById('userName').textContent = name.split(' ')[0];
+            document.getElementById('userRole').textContent = role === 'admin' ? 'مدير' : 'خبير';
+            document.getElementById('userAvatar').textContent = name[0];
+            
+            loadData();
+            
+            if (role === 'admin') {
+                document.getElementById('adminLink').style.display = 'block';
+                document.getElementById('uploadLink').style.display = 'block';
+                showPage('upload', null);
+            } else {
+                showPage('review', null);
+            }
+        }
+
+        function logout() {
+            if (confirm('تسجيل خروج؟')) {
+                location.reload();
+            }
+        }
+
+        function showPage(page, e) {
+            if (e) e.preventDefault();
+            
+            if ((page === 'upload' || page === 'admin') && currentUser.role !== 'admin') {
+                alert('⛔ للإدارة فقط');
+                return;
+            }
+            
+            document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+            document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
+            
+            document.getElementById(page + 'Page').style.display = 'block';
+            if (e && e.target) e.target.classList.add('active');
+            
+            if (page === 'review') loadReviewPage();
+            if (page === 'admin') loadAdminPage();
+        }
+
+        function handleFile(e) {
+            const file = e.target.files[0];
+            if (!file || !file.type.startsWith('image/')) return;
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('preview').src = e.target.result;
+                document.getElementById('preview').style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function submitSign(e) {
+            e.preventDefault();
+            
+            const preview = document.getElementById('preview');
+            if (!preview.src) {
+                alert('❌ اختر صورة');
+                return;
+            }
+            
+            submissions.push({
+                id: Date.now(),
+                text: document.getElementById('signText').value,
+                type: document.getElementById('signType').value,
+                description: document.getElementById('signDescription').value,
+                image: preview.src,
+                status: 'pending',
+                ratings: [],
+                reviews: [],
+                timestamp: new Date().toISOString()
+            });
+            
+            localStorage.setItem('submissions', JSON.stringify(submissions));
+            alert('✅ تم الرفع');
+            document.getElementById('uploadForm').reset();
+            preview.style.display = 'none';
+        }
+
+        function loadReviewPage() {
+            loadData();
+            const grid = document.getElementById('reviewGrid');
+            const pending = submissions.filter(s => s.status === 'pending');
+            
+            if (!pending.length) {
+                grid.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-title">لا توجد إشارات</div></div>';
+                return;
+            }
+            
+            grid.innerHTML = pending.map(sub => {
+                const ratingKey = `${currentUser.name}-${sub.id}`;
+                const userRated = userRatings[ratingKey];
+                const avg = sub.ratings.length ? (sub.ratings.reduce((a,b) => a+b, 0) / sub.ratings.length).toFixed(1) : 0;
+                
+                return `
+                    <div class="submission-card">
+                        <img src="${sub.image}" class="submission-image">
+                        <div class="submission-body">
+                            <div class="submission-top">
+                                <div class="submission-letter">${sub.text}</div>
+                                <span class="status-badge status-pending">قيد المراجعة</span>
+                            </div>
+                            
+                            ${userRated ? `
+                                <div class="already-rated">
+                                    <div class="already-rated-icon">✅</div>
+                                    <div class="already-rated-text">تم التقييم</div>
+                                    <div class="already-rated-rating">${userRated} ⭐</div>
+                                </div>
+                            ` : `
+                                <div class="rating-container">
+                                    <div class="rating-title">قيّم جودة الإشارة</div>
+                                    <div class="rating-stars">
+                                        ${[1,2,3,4,5].map(i => `
+                                            <div class="star-btn" onclick="rateSub(${sub.id}, ${i})">
+                                                <span class="star-icon">⭐</span>
+                                                <div class="star-number">${i}</div>
+                                                <div class="star-label">${STAR_LABELS[i]}</div>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                    <div class="rating-guide">
+                                        <div class="rating-guide-title">دليل التقييم:</div>
+                                        <ul class="rating-guide-list">
+                                            <li><strong>1 نجمة:</strong> خطأ تام</li>
+                                            <li><strong>2 نجمة:</strong> خطأ واضح</li>
+                                            <li><strong>3 نجمة:</strong> مقبول</li>
+                                            <li><strong>4 نجمة:</strong> جيد</li>
+                                            <li><strong>5 نجمة:</strong> ممتاز</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            `}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function rateSub(id, rating) {
+            console.log('Rating clicked:', { id, rating, currentUser });
+            
+            if (!currentUser) {
+                alert('❌ خطأ: يجب تسجيل الدخول أولاً');
+                return;
+            }
+            
+            const ratingKey = `${currentUser.name}-${id}`;
+            console.log('Rating key:', ratingKey);
+            
+            if (userRatings[ratingKey]) {
+                alert('⚠️ تم التقييم سابقاً');
+                return;
+            }
+            
+            const sub = submissions.find(s => s.id === id);
+            if (!sub) {
+                alert('❌ خطأ: لم يتم العثور على الإشارة');
+                console.error('Submission not found:', id);
+                return;
+            }
+            
+            console.log('Found submission:', sub);
+            
+            // Collect feedback
+            const checks = document.querySelectorAll(`.feedback-checkbox[data-id="${id}"]:checked`);
+            const textArea = document.getElementById(`feedback-${id}`);
+            const text = textArea ? textArea.value : '';
+            const feedback = Array.from(checks).map(c => c.dataset.feedback);
+            if (text) feedback.push(text);
+            
+            console.log('Feedback collected:', feedback);
+            
+            // Add rating
+            if (!sub.ratings) sub.ratings = [];
+            if (!sub.reviews) sub.reviews = [];
+            
+            sub.ratings.push(rating);
+            sub.reviews.push({
+                expertName: currentUser.name,
+                expertPhone: currentUser.phone,
+                rating,
+                feedback: feedback.join(' • '),
+                timestamp: new Date().toISOString()
+            });
+            
+            userRatings[ratingKey] = rating;
+            
+            // Save
+            try {
+                localStorage.setItem('submissions', JSON.stringify(submissions));
+                localStorage.setItem('userRatings', JSON.stringify(userRatings));
+                console.log('Data saved successfully');
+            } catch (e) {
+                alert('❌ خطأ في حفظ البيانات: ' + e.message);
+                console.error('Save error:', e);
+                return;
+            }
+            
+            alert(`✅ شكراً!\n\nتم تقييم الإشارة "${sub.text}" بـ ${rating} نجوم (${STAR_LABELS[rating]})`);
+            loadReviewPage();
+        }
+
+        function loadAdminPage() {
+            loadData();
+            updateStats();
+            
+            const grid = document.getElementById('adminGrid');
+            
+            if (!submissions.length) {
+                grid.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-title">لا توجد إشارات</div></div>';
+                return;
+            }
+            
+            grid.innerHTML = submissions.map(sub => {
+                const avg = sub.ratings.length ? (sub.ratings.reduce((a,b) => a+b, 0) / sub.ratings.length).toFixed(1) : 0;
+                
+                return `
+                    <div class="submission-card">
+                        <img src="${sub.image}" class="submission-image">
+                        <div class="submission-body">
+                            <div class="submission-top">
+                                <div class="submission-letter">${sub.text}</div>
+                                <span class="status-badge status-${sub.status}">${{pending:'قيد المراجعة',approved:'مقبولة',rejected:'مرفوضة'}[sub.status]}</span>
+                            </div>
+                            
+                            <div class="info-list">
+                                <div class="info-item">
+                                    <span class="info-label">التقييم:</span>
+                                    <span class="info-value">${avg > 0 ? avg + ' ⭐' : 'لا يوجد'}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">عدد التقييمات:</span>
+                                    <span class="info-value">${sub.ratings.length}</span>
+                                </div>
+                            </div>
+                            
+                            ${sub.reviews && sub.reviews.length ? `
+                                <div class="expert-reviews">
+                                    <div class="expert-reviews-title">📊 تقييمات الخبراء:</div>
+                                    ${sub.reviews.map(r => `
+                                        <div class="expert-review-item">
+                                            <div class="expert-review-header">
+                                                <div class="expert-info">
+                                                    <div class="expert-avatar-small">${r.expertName[0]}</div>
+                                                    <div>
+                                                        <div class="expert-name">${r.expertName}</div>
+                                                        <div class="expert-phone">📱 ${r.expertPhone}</div>
+                                                    </div>
+                                                </div>
+                                                <div class="expert-rating">${r.rating} ⭐</div>
+                                            </div>
+                                            ${r.feedback ? `<div class="expert-feedback">${r.feedback}</div>` : ''}
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            ` : ''}
+                            
+                            <div class="action-buttons">
+                                <button class="btn btn-approve" onclick="approve(${sub.id})" ${sub.status !== 'pending' ? 'disabled' : ''}>✅ قبول</button>
+                                <button class="btn btn-reject" onclick="reject(${sub.id})" ${sub.status !== 'pending' ? 'disabled' : ''}>❌ رفض</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function approve(id) {
+            const sub = submissions.find(s => s.id === id);
+            if (!sub) return;
+            
+            const avg = sub.ratings.length ? sub.ratings.reduce((a,b) => a+b, 0) / sub.ratings.length : 0;
+            if (avg < 3 && avg > 0 && !confirm(`⚠️ التقييم منخفض (${avg.toFixed(1)} ⭐). متأكد؟`)) return;
+            
+            sub.status = 'approved';
+            localStorage.setItem('submissions', JSON.stringify(submissions));
+            alert(`✅ تم القبول`);
+            loadAdminPage();
+        }
+
+        function reject(id) {
+            const sub = submissions.find(s => s.id === id);
+            if (!sub || !confirm('متأكد من الرفض؟')) return;
+            
+            sub.status = 'rejected';
+            localStorage.setItem('submissions', JSON.stringify(submissions));
+            alert(`❌ تم الرفض`);
+            loadAdminPage();
+        }
+
+        function updateStats() {
+            document.getElementById('totalStat').textContent = submissions.length;
+            document.getElementById('pendingStat').textContent = submissions.filter(s => s.status === 'pending').length;
+            document.getElementById('approvedStat').textContent = submissions.filter(s => s.status === 'approved').length;
+            document.getElementById('rejectedStat').textContent = submissions.filter(s => s.status === 'rejected').length;
+        }
+    </script>
+</body>
+</html>
